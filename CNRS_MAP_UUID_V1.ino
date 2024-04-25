@@ -9,6 +9,8 @@ UUID uuid;
 QRCode qrcode;
 PAPERDINK_DEVICE Paperdink;
 
+GxEPD2_GFX& display = Paperdink.epd;
+
 // Définition des pins des boutons
 #define BUTTON_1_PIN 14
 
@@ -21,7 +23,6 @@ void setup() {
   Paperdink.enable_display();
   Paperdink.epd.fillScreen(GxEPD_WHITE);
   Paperdink.epd.setTextColor(GxEPD_BLACK);
-  GxEPD2_GFX& display = Paperdink.epd;
 
   display.setCursor(50, display.height() / 2);
   display.println("Pret a generer UUID");
@@ -38,42 +39,40 @@ void loop() {
 }
 
 
-
 void generateAndDisplayUUID() {
-  char uuidString[37];  // Buffer pour stocker l'UUID généré
   uuid.generate();  // Générer un nouvel UUID
-  uuid.toString(uuidString);  // Convertir l'UUID en chaîne de caractères
-  GxEPD2_GFX& display = Paperdink.epd;
+  char* uuidString = uuid.toCharArray();  // Obtenir la chaîne UUID
+
   display.setCursor(0, 50);
   display.println("UUID:");
-  display.println(uuid);
+  display.println(uuidString);  // Affichez la chaîne correctement obtenue
   Paperdink.epd.display();
   delay(500);
-  generateQRCode(uuidString);  // Générer et afficher le QR Code
+  generateQRCode(uuidString);  // Passez cette chaîne au générateur de QR Code
 }
-
 
 
 void generateQRCode(const char *text) {
-    uint8_t qrcode[qrcodegen_BUFFER_LEN_MAX];
-    uint8_t tempBuffer[qrcodegen_BUFFER_LEN_MAX];
-    bool ok = qrcodegen_encodeText(text, tempBuffer, qrcode,
-        qrcodegen_Ecc_MEDIUM, qrcodegen_VERSION_MIN, qrcodegen_VERSION_MAX, qrcodegen_Mask_AUTO, true);
-    if (ok) {
-        printQR(qrcode);  // Fonction à définir pour l'affichage
-    }
+  uint8_t qrcodeData[qrcode_getBufferSize(3)];
+  qrcode_initText(&qrcode, qrcodeData, 3, 0, text);
+
+  // Appeler la fonction d'affichage du QR Code
+  displayQRCode(qrcode);
 }
-void printQR(const uint8_t qrcode[]) {
-    int size = qrcodegen_getSize(qrcode);
-    int top = (display.height() - size * 2) / 2;  // Centrer le QR code
-    int left = (display.width() - size * 2) / 2;
-    display.fillScreen(GxEPD_WHITE);
-    for (int y = 0; y < size; y++) {
-        for (int x = 0; x < size; x++) {
-            if (qrcodegen_getModule(qrcode, x, y)) {
-                display.fillRect(left + x * 2, top + y * 2, 2, 2, GxEPD_BLACK);
-            }
-        }
+
+void displayQRCode(QRCode &qrcode) {
+  int size = qrcode.size;
+  int scale = 2;  // Ajuster la taille des modules pour un meilleur affichage
+  int top = (display.height() - size * scale) / 2;
+  int left = (display.width() - size * scale) / 2;
+
+  display.fillScreen(GxEPD_WHITE);  // Effacer l'écran
+  for (int y = 0; y < size; y++) {
+    for (int x = 0; x < size; x++) {
+      if (qrcode_getModule(&qrcode, x, y)) {
+        display.fillRect(left + x * scale, top + y * scale, scale, scale, GxEPD_BLACK);
+      }
     }
-    display.display();
+  }
+  display.display();  // Mettre à jour l'affichage
 }
