@@ -11,7 +11,7 @@
 
 
 
-const char* version = "V1.4 - Gestion NO SD";
+const char* version = "V1.5 - Gestion NO SD : OK!!";
 
 
 UUID uuid;
@@ -23,8 +23,10 @@ int screenWidth = 400;  // La largeur de l'écran
 int charWidth = 6;      // Largeur estimée d'un caractère en pixels
 
 std::vector<String> mots;  // Vecteur global pour stocker les mots
-bool sdPresent = false;    // Variable globale pour suivre l'état de la carte SD
+String combinedWords;
+bool sdPresent = false;  // Variable globale pour suivre l'état de la carte SD
 bool sleepStatus = false;
+bool errorStatus = false;
 long lastInteractionTime;
 
 void setup() {
@@ -48,29 +50,28 @@ void setup() {
   if (!SD.begin(SD_CS)) {
     Serial.println("Initialisation de la carte SD échouée!");
     sdPresent = false;
-    //TODO : Warning
   } else {
     Serial.println("Initialisation de la carte SD réussie.");
     sdPresent = true;
-  }
-  // Charger les mots du fichier dans le vecteur global
-  File file = SD.open("/Noms.txt", FILE_READ);
-  if (!file) {
-    Serial.println("Erreur : Impossible d'ouvrir le fichier de noms.");
-    return;
-  }
 
-  while (file.available()) {
-    String word = file.readStringUntil('\n');
-    word.trim();  // Enlever les espaces blancs ou les retours à la ligne
-    if (word.length() > 0) {
-      mots.push_back(word);
+    // Charger les mots du fichier dans le vecteur global
+    File file = SD.open("/Noms.txt", FILE_READ);
+    if (!file) {
+      Serial.println("Erreur : Impossible d'ouvrir le fichier de noms.");
+      return;
     }
+
+    while (file.available()) {
+      String word = file.readStringUntil('\n');
+      word.trim();  // Enlever les espaces blancs ou les retours à la ligne
+      if (word.length() > 0) {
+        mots.push_back(word);
+      }
+    }
+
+    file.close();
+    Serial.println("Mots chargés en mémoire.");
   }
-
-  file.close();
-  Serial.println("Mots chargés en mémoire.");
-
   int textlenght = strlen(version) * charWidth;
   int uuidTextX = (screenWidth - textlenght) / 2;
   display.setCursor(uuidTextX, display.height() / 2);
@@ -112,31 +113,34 @@ void generateAndDisplayUUID() {
   digitalWrite(SD_EN, LOW);
   if (mots.size() < 3) {
     Serial.println("Pas assez de mots dans le fichier.");
-    return;
   }
 
   // Sélectionner aléatoirement trois mots
   String selectedWords[3];
-  for (int i = 0; i < 3; i++) {
-    int index = random(mots.size());  // Choix aléatoire d'un index
-    selectedWords[i] = mots[index];
-  }
 
-  // Écrire l'UUID et les mots choisis dans "historique.txt"
-  File file = SD.open("/historique.txt", FILE_APPEND);
-  if (file) {
-    file.print(uuidString);
-    file.println("," + selectedWords[0] + "-" + selectedWords[1] + "-" + selectedWords[2]);
-    file.close();
+  if (sdPresent) {
 
-    Serial.print("UUID et mots enregistrés : ");
-    Serial.print(uuidString);
-    Serial.print(" ");
-    Serial.println(selectedWords[0] + "-" + selectedWords[1] + "-" + selectedWords[2]);
+    for (int i = 0; i < 3; i++) {
+      int index = random(mots.size());  // Choix aléatoire d'un index
+      selectedWords[i] = mots[index];
+    }
+    // Écrire l'UUID et les mots choisis dans "historique.txt"
+    File file = SD.open("/historique.txt", FILE_APPEND);
+    if (file) {
+      file.print(uuidString);
+      file.println("," + selectedWords[0] + "-" + selectedWords[1] + "-" + selectedWords[2]);
+      file.close();
+
+      Serial.print("UUID et mots enregistrés : ");
+      Serial.print(uuidString);
+      Serial.print(" ");
+      Serial.println(selectedWords[0] + "-" + selectedWords[1] + "-" + selectedWords[2]);
+    } else {
+      errorStatus =1;
+      Serial.println("Erreur : Impossible d'ouvrir 'historique.txt' en mode ajout.");
+    }
   } else {
-    Serial.println("Erreur : Impossible d'ouvrir 'historique.txt' en mode ajout.");
-
-    //TODO : Afficher un warning dans le HUD
+    Serial.print("Pas carte SD donc pas de sauvegarde.");
   }
 
   // Générer et afficher le QR Code
@@ -147,6 +151,8 @@ void generateAndDisplayUUID() {
 
 
 void displayUUIDandQRCode(const char* uuidString, const String words[]) {
+
+  int textWidth, textX, textY;
   // Génération du QR Code
   QRCode qrcode;
   uint8_t qrcodeData[qrcode_getBufferSize(3)];
@@ -179,10 +185,17 @@ void displayUUIDandQRCode(const char* uuidString, const String words[]) {
   /// AFFICHER LE TRIPTYQUE
   /*############################################################*/
   // Préparation à l'affichage des mots
-  String combinedWords = words[0] + " - " + words[1] + " - " + words[2];
-  int textWidth = combinedWords.length() * charWidth;
-  int textX = (screenWidth - textWidth) / 2;
-  int textY = top + size * scale + 20;  // 20 pixels sous le QR code
+  if (sdPresent) {
+    combinedWords = words[0] + " - " + words[1] + " - " + words[2];
+    textWidth = combinedWords.length() * charWidth;
+    textX = (screenWidth - textWidth) / 2;
+    textY = top + size * scale + 20;  // 20 pixels sous le QR code
+  } else {
+    combinedWords = "Ajoutez \"Noms.txt\" à la racine de la SD. ";
+    textWidth = combinedWords.length() * charWidth;
+    textX = (screenWidth - textWidth) / 2;
+    textY = top + size * scale + 20;  // 20 pixels sous le QR code
+  }
   // Mise en place du curseur
   display.setCursor(textX, textY);
   display.println(combinedWords);
@@ -254,15 +267,19 @@ void HUD() {
   // Affichage de l'icône de veille si l'appareil est en mode veille
   if (sleepStatus) {
     display.drawXBitmap(x, y, (const uint8_t*)sleep_bits, sleep_width, sleep_height, GxEPD_BLACK);
+    y += sleep_height + 5;
+  }
+  
+  if (errorStatus){
+    display.drawXBitmap(x, y, (const uint8_t*)warning_bits, warning_width, warning_height, GxEPD_BLACK);
   }
 }
 
 void Menu() {
   //Affichage de l'icone "new"
- display.drawXBitmap(380, 280, (const uint8_t*)new_bits, new_width, new_height, GxEPD_BLACK);
+  display.drawXBitmap(380, 25, (const uint8_t*)new_bits, new_width, new_height, GxEPD_BLACK);
   //Affichage de l'icone "historique"
-  display.drawXBitmap(380, 100, (const uint8_t*)history_bits, history_width, history_height, GxEPD_BLACK);
+  display.drawXBitmap(380, 110, (const uint8_t*)history_bits, history_width, history_height, GxEPD_BLACK);
   // Affichage de l'icône de "power" à la position spécifiée
   display.drawXBitmap(380, 280, (const uint8_t*)power_bits, power_width, power_height, GxEPD_BLACK);
-
 }
