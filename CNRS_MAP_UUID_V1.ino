@@ -23,7 +23,7 @@ int screenWidth = 400;  // La largeur de l'écran
 int charWidth = 6;      // Largeur estimée d'un caractère en pixels
 
 std::vector<String> mots;  // Vecteur global pour stocker les mots
-bool sdPresent = false; // Variable globale pour suivre l'état de la carte SD
+bool sdPresent = false;    // Variable globale pour suivre l'état de la carte SD
 
 
 
@@ -40,13 +40,14 @@ void setup() {
   Paperdink.epd.fillScreen(GxEPD_WHITE);
   Paperdink.epd.setTextColor(GxEPD_BLACK);
 
-    if (!SD.begin(SD_CS)) {
-        Serial.println("Initialisation de la carte SD échouée!");
-        sdPresent = false;
-    } else {
-        Serial.println("Initialisation de la carte SD réussie.");
-        sdPresent = true;
-    }
+  if (!SD.begin(SD_CS)) {
+    Serial.println("Initialisation de la carte SD échouée!");
+    sdPresent = false;
+    displayIcon();
+  } else {
+    Serial.println("Initialisation de la carte SD réussie.");
+    sdPresent = true;
+  }
   // Charger les mots du fichier dans le vecteur global
   File file = SD.open("/Noms.txt", FILE_READ);
   if (!file) {
@@ -69,7 +70,6 @@ void setup() {
   int uuidTextX = (screenWidth - textlenght) / 2;
   display.setCursor(uuidTextX, display.height() / 2);
   display.println(version);
-  displayIcon();
   Paperdink.epd.display();
 }
 
@@ -88,7 +88,7 @@ void loop() {
 void generateAndDisplayUUID() {
   uuid.generate();                        // Générer un nouvel UUID
   char* uuidString = uuid.toCharArray();  // Obtenir la chaîne UUID
-  
+
 
   digitalWrite(SD_EN, LOW);
 
@@ -98,7 +98,7 @@ void generateAndDisplayUUID() {
   }
 
   // Sélectionner aléatoirement trois mots
-  String selectedWords[3];/Users/eloi/Documents/Arduino/CNRS_MAP_UUID_V1/icons.h
+  String selectedWords[3];
   for (int i = 0; i < 3; i++) {
     int index = random(mots.size());  // Choix aléatoire d'un index
     selectedWords[i] = mots[index];
@@ -120,7 +120,7 @@ void generateAndDisplayUUID() {
   }
 
   // Générer et afficher le QR Code
-  displayUUIDandQRCode(uuidString,selectedWords);
+  displayUUIDandQRCode(uuidString, selectedWords);
   digitalWrite(SD_EN, HIGH);
 }
 
@@ -153,12 +153,12 @@ void displayUUIDandQRCode(const char* uuidString, const String words[]) {
     }
   }
 
-/// AFFICHER LE TRIPTYQUE
+  /// AFFICHER LE TRIPTYQUE
   // Préparation à l'affichage des mots
   String combinedWords = words[0] + " - " + words[1] + " - " + words[2];
   int textWidth = combinedWords.length() * charWidth;
   int textX = (screenWidth - textWidth) / 2;
-  int textY = top + size * scale + 20; // 20 pixels sous le QR code
+  int textY = top + size * scale + 20;  // 20 pixels sous le QR code
 
   display.setCursor(textX, textY);
   display.println(combinedWords);
@@ -167,13 +167,13 @@ void displayUUIDandQRCode(const char* uuidString, const String words[]) {
 }
 
 void displayIcon() {
-    // Détermine le coin en haut à droite pour l'icône
-    int x = display.width() - sd_width;
-    int y = 0;
+  // Détermine le coin en haut à droite pour l'icône
+  int x = 0;
+  int y = 0;
 
-    if (sdPresent) {
-        display.drawBitmap(x, y, (const uint8_t*)sd_bits, sd_width, sd_height, GxEPD_BLACK);
-    } else {
-        display.drawBitmap(x, y, (const uint8_t*)nosd_bits, nosd_width, nosd_height, GxEPD_BLACK);
-    }
+  if (sdPresent) {
+    display.drawXBitmap(x, y, (const uint8_t*)sd_bits, sd_width, sd_height, GxEPD_BLACK);
+  } else {
+    display.drawXBitmap(x, y, (const uint8_t*)nosd_bits, nosd_width, nosd_height, GxEPD_BLACK);
+  }
 }
