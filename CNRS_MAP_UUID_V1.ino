@@ -14,7 +14,7 @@
 PCF8574 pcf8574(PCF_I2C_ADDR, SDA, SCL);
 
 
-const char* version = "V1.70 - CheckSD BOUYHAAAA";
+const char* version = "V1.71 - On avance sur l'historique";
 
 
 UUID uuid;
@@ -289,16 +289,26 @@ void displayUUIDandQRCode(const char* uuidString, const String words[]) {
 }
 
 
+void displayError(const char* msg) {
+  display.fillScreen(GxEPD_WHITE);
+  int textlenght = strlen(msg) * charWidth;
+  int TextX = (screenWidth - textlenght) / 2;
+  display.setCursor(TextX, display.height() / 2);
+  display.println(msg);
+  display.display();
+  Serial.println(msg);
+  delay(2000);
+  display.fillScreen(GxEPD_WHITE);
+}
 
+
+
+//########################################################################################################################################################################
 void menuHistorique() {
+  // Si la carte est absente, afficher une erreur
   if (!sdPresent) {
-    Serial.println("Erreur : Carte SD absente.");
-    display.fillScreen(GxEPD_WHITE);
-    display.setCursor(50, display.height() / 2);
-    display.println("Erreur : Carte SD absente.");
-    display.display();
-    delay(2000);
-    display.fillScreen(GxEPD_WHITE);
+    const char* msg = "Erreur : Carte SD absente.";
+    displayError(msg);
     // Réafficher le dernier UUID généré
     String words[3] = { "", "", "" };  // Dummy words array
     displayUUIDandQRCode(uuid.toCharArray(), words);
@@ -308,13 +318,8 @@ void menuHistorique() {
   // Lire le fichier historique
   File file = SD.open("/historique.txt", FILE_READ);
   if (!file) {
-    Serial.println("Erreur : Impossible d'ouvrir 'historique.txt'.");
-    display.fillScreen(GxEPD_WHITE);
-    display.setCursor(50, display.height() / 2);
-    display.println("Erreur : Impossible d'ouvrir 'historique.txt'.");
-    display.display();
-    delay(2000);
-    display.fillScreen(GxEPD_WHITE);
+    const char* msg = "Erreur : Impossible d'ouvrir 'historique.txt'.";
+    displayError(msg);
     // Réafficher le dernier UUID généré
     String words[3] = { "", "", "" };  // Dummy words array
     displayUUIDandQRCode(uuid.toCharArray(), words);
@@ -337,6 +342,9 @@ void menuHistorique() {
 
   // Afficher les 10 derniers UUID
   display.fillScreen(GxEPD_WHITE);
+
+  MenuHistory();
+
   int cursorPosition = 0;
   bool selectionConfirmed = false;
 
@@ -511,4 +519,12 @@ void MenuSleep() {
   // Affichage de l'icône de "power" à la position spécifiée
   display.drawXBitmap(360, 280, (const uint8_t*)fleche_bits, fleche_width, fleche_height, GxEPD_BLACK);
   display.drawXBitmap(380, 280, (const uint8_t*)power_bits, power_width, power_height, GxEPD_BLACK);
+}
+
+
+void MenuHistory() {
+  display.drawXBitmap(389, 25, (const uint8_t*)up_bits, up_width, up_height, GxEPD_BLACK);
+  display.drawXBitmap(389, 110, (const uint8_t*)down_bits, down_width, down_height, GxEPD_BLACK);
+  display.drawXBitmap(380, 195, (const uint8_t*)check_bits, check_width, check_height, GxEPD_BLACK);
+  display.drawXBitmap(380, 280, (const uint8_t*)home_bits, home_width, home_height, GxEPD_BLACK);
 }
