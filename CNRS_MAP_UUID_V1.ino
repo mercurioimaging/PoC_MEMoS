@@ -14,7 +14,7 @@
 PCF8574 pcf8574(PCF_I2C_ADDR, SDA, SCL);
 
 
-const char* version = "V1.66 - SD IN/out";
+const char* version = "V1.67 - pcf8574";
 
 
 UUID uuid;
@@ -44,26 +44,34 @@ void setup() {
   pinMode(BUTTON_2_PIN, INPUT_PULLUP);
   pinMode(BUTTON_3_PIN, INPUT_PULLUP);
   pinMode(BUTTON_4_PIN, INPUT_PULLUP);
-
+  // Board Init
+  pinMode(EPD_EN, OUTPUT);
+  pinMode(EPD_RST, OUTPUT);
   pinMode(SD_EN, OUTPUT);
-  pinMode(CHARGING_PIN, INPUT);
-  pinMode(PCF_INT, INPUT);
+  pinMode(BATT_EN, OUTPUT);
+  pinMode(PCF_INT, OUTPUT);  // Required to lower power consumption
+  pinMode(CHARGING_PIN, INPUT_PULLUP);
+  // Power up EPD
+  digitalWrite(EPD_EN, LOW);
+  digitalWrite(EPD_RST, LOW);
+  delay(50);
+  digitalWrite(EPD_RST, HIGH);
+  delay(50);
 
   // Initialisation de l'écran
   Paperdink.begin();
   Paperdink.enable_display();
   //Test de l'extention de GPIO (pour détecter si la carte SD est présente)
+
+  pcf8574.pinMode(SD_CD, INPUT);
   if (pcf8574.begin()) {
     Serial.println(pcf_success);
-    pcf8574.digitalWrite(P0, HIGH);
-    pcf8574.pinMode(PCF8574_P4, INPUT_PULLUP);
   } else {
     Serial.println(pcf_failed);
   }
 
   homescreen();  // Afficher l'écran d'accueil
   lastInteractionTime = millis();
-
 }
 
 
@@ -74,6 +82,7 @@ void loop() {
 
   // Vérifier le bouton 1 pour générer un UUID
   if (digitalRead(BUTTON_1_PIN) == LOW) {
+    Serial.println("Nouveau UUID");
     CheckSD();
     Paperdink.epd.fillScreen(GxEPD_WHITE);
     generateAndDisplayUUID();
@@ -124,14 +133,15 @@ void GoToSleep() {
 }
 
 void CheckSD() {
-
+  Serial.println("CheckSD");
   bool PrevioussdPresent = sdPresent;
   // Vérification physique de la présence de la carte SD
-  if (digitalRead(SD_CD) == HIGH) {
+  if (pcf8574.digitalRead(SD_CD) == HIGH) {
     Serial.println("Carte SD absente physiquement!");
     sdPresent = false;
     mots.clear();  // Vider le vecteur des mots
   } else {
+    Serial.println("Carte SD branchée!");
     if (!SD.begin(SD_CS)) {
       Serial.println("Initialisation de la carte SD échouée!");
       sdPresent = false;
@@ -148,6 +158,7 @@ void CheckSD() {
 
 void CreateWordsList() {
   // Charger les mots du fichier dans le vecteur global
+  Serial.println("CreateWordLists()");
   File file = SD.open("/Noms.txt", FILE_READ);
   if (!file) {
     Serial.println("Erreur : Impossible d'ouvrir le fichier de noms.");
@@ -168,7 +179,6 @@ void CreateWordsList() {
 
 void generateAndDisplayUUID() {
 
-  CheckSD();
   display.fillScreen(GxEPD_WHITE);
   uint32_t seed1 = random(999999999);
   uint32_t seed2 = random(999999999);
@@ -196,7 +206,7 @@ void generateAndDisplayUUID() {
       file.print(uuidString);
       file.println("," + selectedWords[0] + "-" + selectedWords[1] + "-" + selectedWords[2]);
       file.close();
-
+      errorStatus = 0;
       Serial.print("UUID et mots enregistrés : ");
       Serial.print(uuidString);
       Serial.print(" ");

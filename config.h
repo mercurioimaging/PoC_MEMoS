@@ -36,7 +36,7 @@
 
 // PCF8574 pins
 #define PCF_INT 35
-#define SD_CD P4 // input
+#define SD_CD P0 // input
 #define EXT_GPIO1 P5
 #define EXT_GPIO2 P6
 #define EXT_GPIO3 P7
