@@ -379,9 +379,12 @@ void menuHistorique() {
     while (true) {
       if (digitalRead(BUTTON_4_PIN) == LOW) {
         // Sortir du menu
+        /* CODE POUR AFFICHER LE QRCODE PRECEDENT:
         Paperdink.epd.fillScreen(GxEPD_WHITE);
         String words[3] = { "", "", "" };  // Dummy words array
         displayUUIDandQRCode(uuid.toCharArray(), words);
+        */
+        homescreen();
         return;
       } else if (digitalRead(BUTTON_1_PIN) == LOW) {
         // Déplacer le curseur vers le haut
