@@ -14,7 +14,7 @@
 PCF8574 pcf8574(PCF_I2C_ADDR, SDA, SCL);
 
 
-const char* version = "V1.67 - pcf8574";
+const char* version = "V1.68 - CheckSD WIP";
 
 
 UUID uuid;
@@ -134,26 +134,53 @@ void GoToSleep() {
 
 void CheckSD() {
   Serial.println("CheckSD");
-  bool PrevioussdPresent = sdPresent;
+  bool previousSdPresent = sdPresent;
+
   // Vérification physique de la présence de la carte SD
   if (pcf8574.digitalRead(SD_CD) == HIGH) {
     Serial.println("Carte SD absente physiquement!");
     sdPresent = false;
     mots.clear();  // Vider le vecteur des mots
   } else {
-    Serial.println("Carte SD branchée!");
-    if (!SD.begin(SD_CS)) {
-      Serial.println("Initialisation de la carte SD échouée!");
-      sdPresent = false;
+    Serial.println("Carte SD détectée!");
+    // Réinitialiser la carte SD si l'état a changé de false à true
+    if (previousSdPresent != true) {
+      Serial.println("Réinitialisation de la carte SD...");
+
+      // Désactiver l'alimentation de la carte SD
+      digitalWrite(SD_EN, LOW);
+      delay(100);  // Attendre un moment pour assurer une réinitialisation complète
+
+      // Réactiver l'alimentation de la carte SD
+      digitalWrite(SD_EN, HIGH);
+      delay(100);  // Attendre que la carte SD soit prête
+
+      // Initialiser la carte SD
+      if (SD.begin(SD_CS)) {
+        Serial.println("Initialisation de la carte SD réussie.");
+        sdPresent = true;
+        CreateWordsList();  // Mettre à jour la liste des mots
+      } else {
+        Serial.println("Initialisation de la carte SD échouée!");
+        sdPresent = false;
+      }
     } else {
-      Serial.println("Initialisation de la carte SD réussie.");
-      sdPresent = true;
-      if (PrevioussdPresent != sdPresent) {
-        CreateWordsList();
+      // Initialiser la carte SD sans réinitialisation de l'alimentation
+      if (SD.begin(SD_CS)) {
+        Serial.println("Initialisation de la carte SD réussie.");
+        sdPresent = true;
+        if (previousSdPresent != sdPresent) {
+          CreateWordsList();
+        }
+      } else {
+        Serial.println("Initialisation de la carte SD échouée!");
+        sdPresent = false;
       }
     }
   }
 }
+
+
 
 
 void CreateWordsList() {
