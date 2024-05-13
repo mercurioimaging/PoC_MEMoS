@@ -14,7 +14,7 @@
 PCF8574 pcf8574(PCF_I2C_ADDR, SDA, SCL);
 
 
-const char* version = "V1.68 - CheckSD WIP";
+const char* version = "V1.70 - CheckSD BOUYHAAAA";
 
 
 UUID uuid;
@@ -53,6 +53,7 @@ void setup() {
   pinMode(CHARGING_PIN, INPUT_PULLUP);
   // Power up EPD
   digitalWrite(EPD_EN, LOW);
+  digitalWrite(SD_EN, LOW);
   digitalWrite(EPD_RST, LOW);
   delay(50);
   digitalWrite(EPD_RST, HIGH);
@@ -133,7 +134,6 @@ void GoToSleep() {
 }
 
 void CheckSD() {
-  Serial.println("CheckSD");
   bool previousSdPresent = sdPresent;
 
   // Vérification physique de la présence de la carte SD
@@ -141,47 +141,29 @@ void CheckSD() {
     Serial.println("Carte SD absente physiquement!");
     sdPresent = false;
     mots.clear();  // Vider le vecteur des mots
+    SD.end();
   } else {
     Serial.println("Carte SD détectée!");
-    // Réinitialiser la carte SD si l'état a changé de false à true
-    if (previousSdPresent != true) {
-      Serial.println("Réinitialisation de la carte SD...");
-
-      // Désactiver l'alimentation de la carte SD
-      digitalWrite(SD_EN, LOW);
-      delay(100);  // Attendre un moment pour assurer une réinitialisation complète
-
-      // Réactiver l'alimentation de la carte SD
+    if (previousSdPresent == false) {
+      Serial.println("Carte réinsérée!");
       digitalWrite(SD_EN, HIGH);
-      delay(100);  // Attendre que la carte SD soit prête
-
-      // Initialiser la carte SD
-      if (SD.begin(SD_CS)) {
-        Serial.println("Initialisation de la carte SD réussie.");
-        sdPresent = true;
-        CreateWordsList();  // Mettre à jour la liste des mots
-      } else {
-        Serial.println("Initialisation de la carte SD échouée!");
-        sdPresent = false;
+      delay(250);
+      digitalWrite(SD_EN, LOW);
+      delay(300);
+    }
+    if (SD.begin(SD_CS)) {
+      Serial.println("Initialisation de la carte SD réussie.");
+      sdPresent = true;
+      // Si l'état de la carte SD a changé, mettre à jour la liste des mots
+      if (previousSdPresent != sdPresent) {
+        CreateWordsList();
       }
     } else {
-      // Initialiser la carte SD sans réinitialisation de l'alimentation
-      if (SD.begin(SD_CS)) {
-        Serial.println("Initialisation de la carte SD réussie.");
-        sdPresent = true;
-        if (previousSdPresent != sdPresent) {
-          CreateWordsList();
-        }
-      } else {
-        Serial.println("Initialisation de la carte SD échouée!");
-        sdPresent = false;
-      }
+      Serial.println("Initialisation de la carte SD échouée!");
+      sdPresent = false;
     }
   }
 }
-
-
-
 
 void CreateWordsList() {
   // Charger les mots du fichier dans le vecteur global
@@ -213,7 +195,6 @@ void generateAndDisplayUUID() {
   uuid.generate();                        // Générer un nouvel UUID
   char* uuidString = uuid.toCharArray();  // Obtenir la chaîne UUID
 
-  digitalWrite(SD_EN, LOW);
   if (mots.size() < 3) {
     Serial.println("Pas assez de mots dans le fichier.");
   }
@@ -243,13 +224,11 @@ void generateAndDisplayUUID() {
       Serial.println("Erreur : Impossible d'ouvrir 'historique.txt' en mode ajout.");
     }
   } else {
-    Serial.print("Pas carte SD donc pas de sauvegarde.");
+    Serial.println("Pas carte SD donc pas de sauvegarde.");
   }
 
   // Générer et afficher le QR Code
   displayUUIDandQRCode(uuidString, selectedWords);
-  //Libérer la carte SD
-  digitalWrite(SD_EN, HIGH);
 }
 
 
