@@ -15,7 +15,7 @@
 PCF8574 pcf8574(PCF_I2C_ADDR, SDA, SCL);
 
 
-const char* version = "V1.72 - Mise en page, changement fonts";
+const char* version = "V2 - PROTO OK";
 
 
 UUID uuid;
@@ -361,7 +361,7 @@ void menuHistorique() {
     yPosition = 40 + i * 20;  // Espacement vertical
 
     display.setCursor(10, yPosition);
-    String truncatedEntry = historique[index].substring(0, 55);
+    String truncatedEntry = historique[index].substring(0, 60);
     display.print(truncatedEntry);
   }
   MenuHistory();
@@ -369,8 +369,7 @@ void menuHistorique() {
 
 
   while (!selectionConfirmed) {
-    display.fillRect(0, 300, 10, 300, GxEPD_WHITE);
-    display.fillRect(0, 300, 10, 300, GxEPD_BLACK);
+    display.fillRect(0, 20, 10, 280, GxEPD_WHITE);
     display.fillRect(0, 300, 10, 300, GxEPD_WHITE);
     display.setCursor(0, 40 + cursorPosition * 20);
     display.print(">");
