@@ -359,7 +359,7 @@ void menuHistorique() {
   file.close();
 
   int totalEntries = historique.size();
-  int entriesToShow = min(totalEntries, 12);
+  int entriesToShow = min(totalEntries, 13);
 
   // Afficher les 10 derniers UUID
   //On met du blanc partout:
@@ -368,7 +368,7 @@ void menuHistorique() {
   bool selectionConfirmed = false;
   //On affiche la liste:
   display.fillScreen(GxEPD_WHITE);
-  display.setCursor(120, 12);
+  display.setCursor(120, 15);
   display.setFont(&PAPERDINK_FONT_MED_BOLD);
   display.print("HISTORIQUE");
   //display.setFont(&PAPERDINK_FONT_SML);
@@ -377,7 +377,7 @@ void menuHistorique() {
     index = totalEntries - 1 - i;
     yPosition = 40 + i * 20;  // Espacement vertical
 
-    display.setCursor(10, yPosition);
+    display.setCursor(13, yPosition);
     String truncatedEntry = historique[index].substring(0, 60);
     display.print(truncatedEntry);
   }
@@ -389,11 +389,10 @@ void menuHistorique() {
 
   while (!selectionConfirmed) {
 
-    display.fillRect(0, 20, 10, 280, GxEPD_WHITE);
-    display.fillRect(0, 300, 10, 300, GxEPD_WHITE);
+    display.fillRect(0, 20, 12, 280, GxEPD_WHITE);
     display.setCursor(0, 40 + cursorPosition * 20);
-    display.print(">");
-    display.displayWindow(0, 0, 10, 300);  //(box_x, box_y, box_w, box_h)
+    display.print("->");
+    display.displayWindow(0, 0, 12, 300);  //(box_x, box_y, box_w, box_h)
     //display.display();
     // Gestion des boutons
     while (true) {
