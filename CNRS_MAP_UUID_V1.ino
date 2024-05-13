@@ -9,12 +9,13 @@
 #include "icons.h"
 #include <vector>
 #include "PCF8574.h"
+#include "fonts.h"
 
 // PCF8574 GPIO extender
 PCF8574 pcf8574(PCF_I2C_ADDR, SDA, SCL);
 
 
-const char* version = "V1.71 - On avance sur l'historique";
+const char* version = "V1.72 - Mise en page, changement fonts";
 
 
 UUID uuid;
@@ -305,6 +306,9 @@ void displayError(const char* msg) {
 
 //########################################################################################################################################################################
 void menuHistorique() {
+
+  int yPosition, index;
+  //Test avant menu:
   // Si la carte est absente, afficher une erreur
   if (!sdPresent) {
     const char* msg = "Erreur : Carte SD absente.";
@@ -325,7 +329,7 @@ void menuHistorique() {
     displayUUIDandQRCode(uuid.toCharArray(), words);
     return;
   }
-
+  //Si tout va bien, on lit le fichier
   // Lire les lignes du fichier dans un vecteur
   std::vector<String> historique;
   while (file.available()) {
@@ -338,49 +342,57 @@ void menuHistorique() {
   file.close();
 
   int totalEntries = historique.size();
-  int entriesToShow = min(totalEntries, 10);
+  int entriesToShow = min(totalEntries, 12);
 
   // Afficher les 10 derniers UUID
-  display.fillScreen(GxEPD_WHITE);
-
-  MenuHistory();
+  //On met du blanc partout:
 
   int cursorPosition = 0;
   bool selectionConfirmed = false;
+  //On affiche la liste:
+  display.fillScreen(GxEPD_WHITE);
+  display.setCursor(120, 12);
+  display.setFont(&PAPERDINK_FONT_MED_BOLD);
+  display.print("HISTORIQUE");
+  //display.setFont(&PAPERDINK_FONT_SML);
+  display.setFont(NULL);
+  for (int i = 0; i < entriesToShow; i++) {
+    index = totalEntries - 1 - i;
+    yPosition = 40 + i * 20;  // Espacement vertical
+
+    display.setCursor(10, yPosition);
+    String truncatedEntry = historique[index].substring(0, 55);
+    display.print(truncatedEntry);
+  }
+  MenuHistory();
+  display.display();
+
 
   while (!selectionConfirmed) {
-    display.fillScreen(GxEPD_WHITE);
-    for (int i = 0; i < entriesToShow; i++) {
-      int index = totalEntries - 1 - i;
-      int yPosition = 20 + i * 20;  // Espacement vertical
-
-      if (i == cursorPosition) {
-        display.setCursor(0, yPosition);
-        display.print(">");
-      }
-
-      display.setCursor(20, yPosition);
-      display.print(historique[index]);
-    }
-    display.display();
-
+    display.fillRect(0, 300, 10, 300, GxEPD_WHITE);
+    display.fillRect(0, 300, 10, 300, GxEPD_BLACK);
+    display.fillRect(0, 300, 10, 300, GxEPD_WHITE);
+    display.setCursor(0, 40 + cursorPosition * 20);
+    display.print(">");
+    display.displayWindow(0, 0, 10, 300);  //(box_x, box_y, box_w, box_h)
+    //display.display();
     // Gestion des boutons
     while (true) {
-      if (digitalRead(BUTTON_1_PIN) == LOW) {
+      if (digitalRead(BUTTON_4_PIN) == LOW) {
         // Sortir du menu
         Paperdink.epd.fillScreen(GxEPD_WHITE);
         String words[3] = { "", "", "" };  // Dummy words array
         displayUUIDandQRCode(uuid.toCharArray(), words);
         return;
-      } else if (digitalRead(BUTTON_2_PIN) == LOW) {
+      } else if (digitalRead(BUTTON_1_PIN) == LOW) {
         // Déplacer le curseur vers le haut
         cursorPosition = (cursorPosition > 0) ? cursorPosition - 1 : entriesToShow - 1;
         break;
-      } else if (digitalRead(BUTTON_3_PIN) == LOW) {
+      } else if (digitalRead(BUTTON_2_PIN) == LOW) {
         // Déplacer le curseur vers le bas
         cursorPosition = (cursorPosition < entriesToShow - 1) ? cursorPosition + 1 : 0;
         break;
-      } else if (digitalRead(BUTTON_4_PIN) == LOW) {
+      } else if (digitalRead(BUTTON_3_PIN) == LOW) {
         // Valider la sélection
         selectionConfirmed = true;
         break;
@@ -416,10 +428,12 @@ void menuHistorique() {
 void homescreen() {
   Paperdink.epd.fillScreen(GxEPD_WHITE);
   Paperdink.epd.setTextColor(GxEPD_BLACK);
+  //Paperdink.epd.setFont(&PAPERDINK_FONT_SML);
 
   int textlenght = strlen(version) * charWidth;
   int uuidTextX = (screenWidth - textlenght) / 2;
   display.setCursor(uuidTextX, display.height() / 2);
+  display.setFont(NULL);
   display.println(version);
 
   CheckSD();
