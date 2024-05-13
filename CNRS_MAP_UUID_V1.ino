@@ -15,7 +15,7 @@
 PCF8574 pcf8574(PCF_I2C_ADDR, SDA, SCL);
 
 
-const char* version = "V2 - PROTO OK";
+const char* version = "PoC_MEMoS";
 
 
 UUID uuid;
@@ -77,10 +77,11 @@ void setup() {
 }
 
 
-
 void loop() {
   static unsigned long buttonPressTime = 0;
   static bool buttonPressed = false;
+  static unsigned long button3PressTime = 0;  // Temps de début de pression pour le bouton 3
+  static bool button3Pressed = false;         // État de pression pour le bouton 3
 
   // Vérifier le bouton 1 pour générer un UUID
   if (digitalRead(BUTTON_1_PIN) == LOW) {
@@ -98,29 +99,45 @@ void loop() {
     CheckSD();
     menuHistorique();
   }
-  // Vérifier si le bouton 4 est maintenu enfoncé
-  else if (digitalRead(BUTTON_4_PIN) == LOW) {
-    if (!buttonPressed) {
-      buttonPressTime = millis();  // Enregistrer le temps du début de la pression
-      buttonPressed = true;
-    } else if (millis() - buttonPressTime > 2000) {
-      GoToSleep();
-      buttonPressed = false;  // Réinitialiser le statut du bouton
+  // Vérifier si le bouton 3 est maintenu enfoncé
+  else if (digitalRead(BUTTON_3_PIN) == LOW) {
+    if (!button3Pressed) {
+      button3PressTime = millis();  // Enregistrer le temps du début de la pression
+      button3Pressed = true;
+    } else if (millis() - button3PressTime > 3000) {  // 3000 ms = 3 secondes
+      Bonus();
+      button3Pressed = false;  // Réinitialiser le statut du bouton
     }
   } else {
-    if (buttonPressed) {
-      buttonPressed = false;
-      if (millis() - buttonPressTime <= 2000) {
-        homescreen();
+    if (button3Pressed) {
+      button3Pressed = false;
+    }
+    // Vérifier si le bouton 4 est maintenu enfoncé
+    if (digitalRead(BUTTON_4_PIN) == LOW) {
+      if (!buttonPressed) {
+        buttonPressTime = millis();  // Enregistrer le temps du début de la pression
+        buttonPressed = true;
+      } else if (millis() - buttonPressTime > 1500) {
+        GoToSleep();
+        buttonPressed = false;  // Réinitialiser le statut du bouton
+      }
+    } else {
+      if (buttonPressed) {
+        buttonPressed = false;
+        if (millis() - buttonPressTime <= 1500) {
+          homescreen();
+        }
+      }
+      // Mettre en veille après une période d'inactivité
+      if (millis() - lastInteractionTime > 60000) {
+        GoToSleep();
       }
     }
-    // Mettre en veille après une période d'inactivité
-    if (millis() - lastInteractionTime > 60000) {
-      GoToSleep();
-    }
   }
-  delay(20);
+  delay(30);
 }
+
+
 
 
 void GoToSleep() {
@@ -367,8 +384,11 @@ void menuHistorique() {
   MenuHistory();
   display.display();
 
+  //GoToSleep
+  unsigned long lastInteractionTime = millis();
 
   while (!selectionConfirmed) {
+
     display.fillRect(0, 20, 10, 280, GxEPD_WHITE);
     display.fillRect(0, 300, 10, 300, GxEPD_WHITE);
     display.setCursor(0, 40 + cursorPosition * 20);
@@ -377,6 +397,10 @@ void menuHistorique() {
     //display.display();
     // Gestion des boutons
     while (true) {
+      if (millis() - lastInteractionTime > 60000) {
+        GoToSleep();
+        return;
+      }
       if (digitalRead(BUTTON_4_PIN) == LOW) {
         // Sortir du menu
         /* CODE POUR AFFICHER LE QRCODE PRECEDENT:
@@ -388,10 +412,12 @@ void menuHistorique() {
         return;
       } else if (digitalRead(BUTTON_1_PIN) == LOW) {
         // Déplacer le curseur vers le haut
+        lastInteractionTime = millis();
         cursorPosition = (cursorPosition > 0) ? cursorPosition - 1 : entriesToShow - 1;
         break;
       } else if (digitalRead(BUTTON_2_PIN) == LOW) {
         // Déplacer le curseur vers le bas
+        lastInteractionTime = millis();
         cursorPosition = (cursorPosition < entriesToShow - 1) ? cursorPosition + 1 : 0;
         break;
       } else if (digitalRead(BUTTON_3_PIN) == LOW) {
@@ -445,6 +471,12 @@ void homescreen() {
 }
 
 
+
+void Bonus() {
+  display.fillScreen(GxEPD_WHITE);
+  String phrases[] = { "jamais", "donner", "toi" };
+  displayUUIDandQRCode("https://www.youtube.com/watch?v=dQw4w9WgXcQ", phrases);
+}
 //##########################################################################@ AFFICHAGES GRAPHIQUES
 void HUD() {
   display.fillRect(0, 0, 30, 100, GxEPD_WHITE);  //(box_x, box_y, box_w, box_h, GxEPD_WHITE)
