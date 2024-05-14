@@ -24,8 +24,8 @@
  * 
 
  */
- 
- #define PAPERDINK_DEVICE Paperdink_Classic  // Définir avant toute inclusion
+
+#define PAPERDINK_DEVICE Paperdink_Classic  // Définir avant toute inclusion
 #include <Paperdink.h>
 #include "UUID.h"
 #include "qrcode_gen.h"
@@ -67,11 +67,11 @@ void setup() {
 
 
   Serial.begin(115200);
-  Serial.print("Générateur d'UUID sur QrCode:") ;
+  Serial.print("Générateur d'UUID sur QrCode:");
   Serial.println(version);
   Serial.println("Codé par Eloi Gattet - Mercurio Imaging");
-  Serial.println("05/2024") ;
-  Serial.println("https://mercurioimaging.com") ;
+  Serial.println("05/2024");
+  Serial.println("https://mercurioimaging.com");
 
   pinMode(BUTTON_1_PIN, INPUT_PULLUP);
   pinMode(BUTTON_2_PIN, INPUT_PULLUP);
@@ -178,7 +178,7 @@ void GoToSleep() {
   HUD();
   MenuSleep();
   //display.display();
-  display.displayWindow(0, 0, 35, 10);    //(box_x, box_y, box_w, box_h)
+  display.displayWindow(0, 0, 35, 10);     //(box_x, box_y, box_w, box_h)
   display.displayWindow(0, 0, 20, 100);    //(box_x, box_y, box_w, box_h)
   display.displayWindow(370, 0, 30, 300);  //(box_x, box_y, box_w, box_h)
   Paperdink.deep_sleep_button_wakeup(BUTTON_4_PIN);
@@ -488,7 +488,7 @@ void homescreen() {
   Paperdink.epd.fillScreen(GxEPD_WHITE);
   Paperdink.epd.setTextColor(GxEPD_BLACK);
   //Paperdink.epd.setFont(&PAPERDINK_FONT_SML);
-  display.setFont(&PAPERDINK_FONT_MED); // Tester :@PAPERDINK_FONT_MED_BOLD et &PAPERDINK_FONT_SML et &PAPERDINK_FONT_MED et &PAPERDINK_FONT_LRG
+  display.setFont(&PAPERDINK_FONT_MED);  // Tester :@PAPERDINK_FONT_MED_BOLD et &PAPERDINK_FONT_SML et &PAPERDINK_FONT_MED et &PAPERDINK_FONT_LRG
   int textlenght = strlen(version) * 15;
   int uuidTextX = (screenWidth - textlenght) / 2;
   display.setCursor(uuidTextX, 50);
@@ -506,10 +506,23 @@ void Bonus() {
   String phrases[] = { "jamais", "donner", "toi" };
   displayUUIDandQRCode("https://www.youtube.com/watch?v=dQw4w9WgXcQ", phrases);
 }
+
+
+void Infos() {
+
+  Paperdink.epd.fillScreen(GxEPD_WHITE);
+  Paperdink.epd.setTextColor(GxEPD_BLACK);
+  CheckSD();
+  HUD();
+  Menu();
+  display.display();
+}
+
+
 //##########################################################################@ AFFICHAGES GRAPHIQUES
 void HUD() {
   display.fillRect(0, 0, 20, 100, GxEPD_WHITE);  //(box_x, box_y, box_w, box_h, GxEPD_WHITE)
-  display.fillRect(0, 0, 25, 10, GxEPD_WHITE);  //Efface le logo charge
+  display.fillRect(0, 0, 25, 10, GxEPD_WHITE);   //Efface le logo charge
   int x = 3;
   int y = 3;
 
@@ -551,12 +564,9 @@ void HUD() {
   if (charging) {
     display.drawXBitmap(x, y, (const uint8_t*)charge_bits, charge_width, charge_height, GxEPD_BLACK);
   }
-
-
-  // Calcul pour la position de l'icône de la carte SD (juste en dessous de l'icône de la batterie)
   y += batt_height + 5;  // Ajouter une marge entre les icônes
 
-  x = 3;
+  x = 3;  //Réinitialise x
   // Affichage de l'icône de la carte SD
   if (sdPresent) {
     display.drawXBitmap(x, y, (const uint8_t*)sd_20px_bits, sd_20px_width, sd_20px_height, GxEPD_BLACK);
@@ -565,7 +575,7 @@ void HUD() {
   }
 
   y += sd_20px_height + 5;
-  x = 3;
+  x = 3;  //Réinistialise x
   // Affichage de l'icône de veille si l'appareil est en mode veille
   if (sleepStatus) {
     display.drawXBitmap(x, y, (const uint8_t*)sleep_bits, sleep_width, sleep_height, GxEPD_BLACK);
@@ -584,6 +594,8 @@ void Menu() {
   display.drawXBitmap(380, 25, (const uint8_t*)new_bits, new_width, new_height, GxEPD_BLACK);
   // Affichage de l'icône "historique"
   display.drawXBitmap(380, 110, (const uint8_t*)history_bits, history_width, history_height, GxEPD_BLACK);
+  // Affichage de l'icône "info"
+  display.drawXBitmap(380, 195, (const uint8_t*)info_bits, info_width, info_height, GxEPD_BLACK);
   // Affichage de l'icône "home"
   display.drawXBitmap(380, 280, (const uint8_t*)home_bits, home_width, home_height, GxEPD_BLACK);
   // Affichage de l'icône "power"
