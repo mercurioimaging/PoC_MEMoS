@@ -179,7 +179,7 @@ void GoToSleep() {
   MenuSleep();
   //display.display();
   display.displayWindow(0, 0, 35, 10);    //(box_x, box_y, box_w, box_h)
-  display.displayWindow(0, 0, 20, 60);    //(box_x, box_y, box_w, box_h)
+  display.displayWindow(0, 0, 20, 100);    //(box_x, box_y, box_w, box_h)
   display.displayWindow(370, 0, 30, 300);  //(box_x, box_y, box_w, box_h)
   Paperdink.deep_sleep_button_wakeup(BUTTON_4_PIN);
 }
