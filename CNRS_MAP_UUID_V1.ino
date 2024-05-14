@@ -401,9 +401,9 @@ void menuHistorique() {
   bool selectionConfirmed = false;
   //On affiche la liste:
   display.fillScreen(GxEPD_WHITE);
-  display.setCursor(120, 15);
+  display.setCursor(120, 20);
   display.setFont(&PAPERDINK_FONT_MED_BOLD);
-  display.print("HISTORIQUE");
+  display.print("Historique");
   //display.setFont(&PAPERDINK_FONT_SML);
   display.setFont(NULL);
   for (int i = 0; i < entriesToShow; i++) {
@@ -423,7 +423,7 @@ void menuHistorique() {
   while (!selectionConfirmed) {
 
     display.fillRect(0, 20, 12, 280, GxEPD_WHITE);
-    display.drawXBitmap(0, 40 + cursorPosition * 20, (const uint8_t*)fleche_7x12_bits, fleche_7x12_width, fleche_7x12_height, GxEPD_BLACK);
+    display.drawXBitmap(0, 39 + cursorPosition * 20, (const uint8_t*)fleche_7x12_bits, fleche_7x12_width, fleche_7x12_height, GxEPD_BLACK);
     display.displayWindow(0, 0, 12, 300);  //(box_x, box_y, box_w, box_h)
     //display.display();
     // Gestion des boutons
