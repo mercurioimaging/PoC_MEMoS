@@ -9,8 +9,8 @@
 #define PI_CLASSIC (true)
 
 
-#define SSID     "Bytel-E-Etamine-78058-2.4GHz"     // your network SSID (name of wifi network)
-#define PASSWORD "rxc0jmwrpNs6Hpbe"     // your network password
+#define SSID     ""     // your network SSID (name of wifi network)
+#define PASSWORD ""     // your network password
 #define TIME_ZONE "+07:00"      // Your time zone. Daylight saving not handled yet.
 #define START_DAY_OFFSET 0
 

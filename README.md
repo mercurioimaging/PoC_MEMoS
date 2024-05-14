@@ -25,19 +25,18 @@ Chaque UUID est également associé à un triplet de mots aléatoires, choisis d
 1. **Configuration de l'IDE Arduino** :
    - Installez l'IDE Arduino et configurez-le pour le développement avec ESP32 (Carte : ESP32 Dev Module).
    - Suivez le guide : [Démarrage avec Paperd.ink](https://docs.paperd.ink/docs/software/getting-started/) pour installer les librairies nécéssaires. La librairie QR_Code 
+   - Les autres bibliothèques nécessaires sont fournies avec le code.
 
-2. **Installation des bibliothèques** :
-   - Installez les bibliothèques nécessaires (QRCode, GxEPD, etc.) via le gestionnaire de bibliothèques de l'IDE Arduino.
-
-3. **Configuration du projet** :
+4. **Configuration du projet** :
    - Clonez le dépôt ou téléchargez les fichiers sources.
    - Ouvrez le fichier principal du projet dans l'IDE Arduino.
-   - Téléversez le code sur votre carte ESP32.
+   - Téléversez le code sur votre carte ESP32 via un cable usb.
 
 ## Instructions d'Utilisation
 
 - Allumez l'appareil en appuyant sur le bouton en bas à droite.
 - Utilisez les boutons de navigation pour générer des UUID et naviguer dans les menus.
 - Surveillez l'état de la batterie et la présence de la carte SD via les icônes affichées.
+- Une pression longue sur le bouton "Maison" met en veille l'appareil. Il se met automatiquement en veille au bout d'une minute afin d'optimiser l'autonomie.
 
-Pour toute question ou contribution, veuillez consulter le [dépôt GitHub](https://github.com/votre-repo-lien).
+Pour toute question ou contribution, veuillez consulter le [dépôt GitHub](https://github.com/mercurioimaging/PoC_MEMoS).

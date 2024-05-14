@@ -264,15 +264,15 @@ void displayUUIDandQRCode(const char* uuidString, const String words[]) {
   int uuidValueWidth = strlen(uuidString) * charWidth;
   int uuidValueX = (screenWidth - uuidValueWidth) / 2;
   // Positionner et afficher la valeur UUID
-  display.setCursor(uuidValueX, 20);
+  display.setCursor(uuidValueX, 10);
   display.println(uuidString);
 
 
   /// AFFICHER LE QR CODE
   /*############################################################*/
   int size = qrcode.size;
-  int scale = 8;  // Ajuster la taille des modules pour un meilleur affichage
-  int top = (display.height() - size * scale) / 2;
+  int scale = 9;  // Ajuster la taille des modules pour un meilleur affichage
+  int top = (display.height() - size * scale) / 2 + 1;
   int left = (display.width() - size * scale) / 2;
   for (int y = 0; y < size; y++) {
     for (int x = 0; x < size; x++) {
@@ -289,7 +289,7 @@ void displayUUIDandQRCode(const char* uuidString, const String words[]) {
     combinedWords = words[0] + " - " + words[1] + " - " + words[2];
     textWidth = combinedWords.length() * charWidth;
     textX = (screenWidth - textWidth) / 2;
-    textY = top + size * scale + 20;  // 20 pixels sous le QR code
+    textY = top + size * scale + 5;  // 20 pixels sous le QR code
   } else {
     combinedWords = "Ajoutez \"Noms.txt\" a la racine de la SD. ";
     textWidth = combinedWords.length() * charWidth;
