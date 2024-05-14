@@ -112,8 +112,8 @@ void setup() {
 void loop() {
   static unsigned long buttonPressTime = 0;
   static bool buttonPressed = false;
-  static unsigned long button3PressTime = 0;  // Temps de début de pression pour le bouton 3
-  static bool button3Pressed = false;         // État de pression pour le bouton 3
+  static unsigned long button3PressTime = 0;
+  static bool button3Pressed = false;
 
   // Vérifier le bouton 1 pour générer un UUID
   if (digitalRead(BUTTON_1_PIN) == LOW) {
@@ -143,13 +143,16 @@ void loop() {
   } else {
     if (button3Pressed) {
       button3Pressed = false;
+      if (millis() - button3PressTime <= 3000) {
+        Infos();
+      }
     }
     // Vérifier si le bouton 4 est maintenu enfoncé
     if (digitalRead(BUTTON_4_PIN) == LOW) {
       if (!buttonPressed) {
         buttonPressTime = millis();  // Enregistrer le temps du début de la pression
         buttonPressed = true;
-      } else if (millis() - buttonPressTime > 1500) {
+      } else if (millis() - buttonPressTime > 1500) {  // 1500 ms = 1.5 secondes
         GoToSleep();
         buttonPressed = false;  // Réinitialiser le statut du bouton
       }
@@ -509,14 +512,68 @@ void Bonus() {
 
 
 void Infos() {
+  display.setFont(&PAPERDINK_FONT_SML);
 
   Paperdink.epd.fillScreen(GxEPD_WHITE);
   Paperdink.epd.setTextColor(GxEPD_BLACK);
   CheckSD();
   HUD();
   Menu();
+  int x0 = 60;
+  int x = x0;
+  int y = 30;
+
+  display.setCursor(x, y);
+  display.println("Interface developpee par:");
+
+
+  //LOGO MERCURIO y +30
+  y += 15;
+  display.drawXBitmap(x, y, (const uint8_t*)logo_mercurio_bits, logo_mercurio_width, logo_mercurio_height, GxEPD_BLACK);
+
+  // Nom de la société Mercurio Imaging
+  // On décalle et on centre le texte de mercurio
+  y += 22;
+  x += 120;
+
+  display.setCursor(x, y);  // Ajuster en fonction de l'emplacement souhaité
+  display.println("Mercurio Imaging");
+
+  //On aligne à nouveau à gauche:
+  x = x0;
+  y += 45;
+  display.setCursor(x, y);  // Ajuster en fonction de l'emplacement souhaité
+  display.println("Projet MEMos dirige par :");
+  y += 20;
+  // Afficher le logo du CNRS 60,160
+  display.drawXBitmap(x, y, (const uint8_t*)logo_cnrs_bits, logo_cnrs_width, logo_cnrs_height, GxEPD_BLACK);
+  x += 60;  //On décale de 60 pixels apres le logo du map
+  // Afficher le logo du MAP
+  display.drawXBitmap(x, y, (const uint8_t*)logo_map_bits, logo_map_width, logo_map_height, GxEPD_BLACK);
+
+  // Lien vers le site du MAP CNRS
+  y += 70;                  // On descend
+  x = x0;                   //On réinitialise à gauche
+  display.setCursor(x, y);  // Ajuster en fonction de l'emplacement souhaité
+  display.println("Laboratoire MAP UPR 2002");
+  y += 25;                  // On descend de 30 px
+  display.setCursor(x, y);  // Ajuster en fonction de l'emplacement souhaité
+  display.print("https://www.map.cnrs.fr/");
+
+  // Lien vers le GitHub du projet
+  y += 25;                  //On descend de 40px
+  x = x0;                   //On réinitialiser encore la position en x
+  display.setCursor(x, y);  // Ajuster en fonction de l'emplacement souhaité
+  display.print("Plus d'infos sur:");
+  display.setFont(NULL);
+  y += 15;                  //on descend encore
+  display.setCursor(x, y);  // Ajuster en fonction de l'emplacement souhaité
+  display.println("https://github.com/mercurioimaging/PoC_MEMoS");
+
+
   display.display();
 }
+
 
 
 //##########################################################################@ AFFICHAGES GRAPHIQUES
