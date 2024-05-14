@@ -1,4 +1,31 @@
-#define PAPERDINK_DEVICE Paperdink_Classic  // Définir avant toute inclusion
+/*
+ * PoC_MEMOS - Proof of Concept
+ * 
+ * Description :
+ * Ce projet implémente un générateur d'identifiants uniques universels (UUID) utilisant un ESP32 et un écran e-ink. 
+ * Le dispositif permet de générer des UUID aléatoires qui sont ensuite affichés sous forme de QR codes sur l'écran.
+ * L'état de la batterie, la présence de la carte SD et d'autres informations systèmes sont également affichés à l'aide d'icônes sur l'écran.
+ *
+ * Fonctionnalités :
+ * - Génération d'UUID conformes à la norme RFC 4122.
+ * - Affichage de QR codes pour les UUID générés.
+ * - Surveillance de la batterie et indication de l'état de charge.
+ * - Détection de la carte SD et indication de sa présence.
+ * - Mode veille automatique après une minute d'inactivité ou par pression d'un bouton.
+ * - Réveil du dispositif par pression d'un bouton dédié.
+ * 
+ * Matériel Requis :
+ * - Écran e-ink PAPERD.ink Classic
+ * - Carte microSD (optionnelle, pour mémoire étendue)
+ * 
+ * 
+ * Auteur : Eloi Gattet - Mercurio Imaging
+ * Date : 05/2024
+ * 
+
+ */
+ 
+ #define PAPERDINK_DEVICE Paperdink_Classic  // Définir avant toute inclusion
 #include <Paperdink.h>
 #include "UUID.h"
 #include "qrcode_gen.h"
@@ -40,6 +67,11 @@ void setup() {
 
 
   Serial.begin(115200);
+  Serial.print("Générateur d'UUID sur QrCode:") ;
+  Serial.println(version);
+  Serial.println("Codé par Eloi Gattet - Mercurio Imaging");
+  Serial.println("05/2024") ;
+  Serial.println("https://mercurioimaging.com") ;
 
   pinMode(BUTTON_1_PIN, INPUT_PULLUP);
   pinMode(BUTTON_2_PIN, INPUT_PULLUP);
@@ -146,7 +178,8 @@ void GoToSleep() {
   HUD();
   MenuSleep();
   //display.display();
-  display.displayWindow(0, 0, 30, 100);    //(box_x, box_y, box_w, box_h)
+  display.displayWindow(0, 0, 35, 10);    //(box_x, box_y, box_w, box_h)
+  display.displayWindow(0, 0, 20, 60);    //(box_x, box_y, box_w, box_h)
   display.displayWindow(370, 0, 30, 300);  //(box_x, box_y, box_w, box_h)
   Paperdink.deep_sleep_button_wakeup(BUTTON_4_PIN);
 }
@@ -390,8 +423,7 @@ void menuHistorique() {
   while (!selectionConfirmed) {
 
     display.fillRect(0, 20, 12, 280, GxEPD_WHITE);
-    display.setCursor(0, 40 + cursorPosition * 20);
-    display.print("->");
+    display.drawXBitmap(0, 40 + cursorPosition * 20, (const uint8_t*)fleche_7x12_bits, fleche_7x12_width, fleche_7x12_height, GxEPD_BLACK);
     display.displayWindow(0, 0, 12, 300);  //(box_x, box_y, box_w, box_h)
     //display.display();
     // Gestion des boutons
@@ -456,20 +488,18 @@ void homescreen() {
   Paperdink.epd.fillScreen(GxEPD_WHITE);
   Paperdink.epd.setTextColor(GxEPD_BLACK);
   //Paperdink.epd.setFont(&PAPERDINK_FONT_SML);
-
-  int textlenght = strlen(version) * charWidth;
+  display.setFont(&PAPERDINK_FONT_MED); // Tester :@PAPERDINK_FONT_MED_BOLD et &PAPERDINK_FONT_SML et &PAPERDINK_FONT_MED et &PAPERDINK_FONT_LRG
+  int textlenght = strlen(version) * 15;
   int uuidTextX = (screenWidth - textlenght) / 2;
-  display.setCursor(uuidTextX, display.height() / 2);
+  display.setCursor(uuidTextX, 50);
+  display.print(version);
   display.setFont(NULL);
-  display.println(version);
-
+  display.drawXBitmap(100, 80, (const uint8_t*)logo_bits, logo_width, logo_height, GxEPD_BLACK);
   CheckSD();
   HUD();
   Menu();
   display.display();
 }
-
-
 
 void Bonus() {
   display.fillScreen(GxEPD_WHITE);
@@ -478,7 +508,8 @@ void Bonus() {
 }
 //##########################################################################@ AFFICHAGES GRAPHIQUES
 void HUD() {
-  display.fillRect(0, 0, 30, 100, GxEPD_WHITE);  //(box_x, box_y, box_w, box_h, GxEPD_WHITE)
+  display.fillRect(0, 0, 20, 100, GxEPD_WHITE);  //(box_x, box_y, box_w, box_h, GxEPD_WHITE)
+  display.fillRect(0, 0, 25, 10, GxEPD_WHITE);  //Efface le logo charge
   int x = 3;
   int y = 3;
 
